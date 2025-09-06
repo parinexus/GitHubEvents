@@ -1,0 +1,16 @@
+plugins {
+    id("githubevents.android.library")
+    id("githubevents.android.hilt")
+    id("githubevents.test")
+}
+
+android {
+    namespace = "parinexus.sample.githubevents.data.repository"
+}
+
+dependencies {
+    implementation(project(":domain"))
+    implementation(project(":libraries:core"))
+    implementation(libs.androidx.paging.common)
+
+}
