@@ -10,16 +10,16 @@ class RepoEventPagingSourceAdapter(
     private val delegateFactory: () -> PagingSource<Int, LocalEvent>
 ) : PagingSource<Int, RepoEvent>() {
 
-    private var delegate: PagingSource<Int, LocalEvent>? = null
+    private var currentDelegate: PagingSource<Int, LocalEvent>? = null
     private val onDelegateInvalidated: () -> Unit = { this@RepoEventPagingSourceAdapter.invalidate() }
 
-    private fun obtainDelegate(): PagingSource<Int, LocalEvent> {
-        delegate?.unregisterInvalidatedCallback(onDelegateInvalidated)
+    private fun createAndRegisterDelegate(): PagingSource<Int, LocalEvent> {
+        currentDelegate?.unregisterInvalidatedCallback(onDelegateInvalidated)
 
-        val d = delegateFactory()
-        d.registerInvalidatedCallback(onDelegateInvalidated)
-        delegate = d
-        return d
+        val newDelegate = delegateFactory()
+        newDelegate.registerInvalidatedCallback(onDelegateInvalidated)
+        currentDelegate = newDelegate
+        return newDelegate
     }
 
     override fun getRefreshKey(state: PagingState<Int, RepoEvent>): Int? {
@@ -29,16 +29,17 @@ class RepoEventPagingSourceAdapter(
     }
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, RepoEvent> {
-        val d = delegate?.takeUnless { it.invalid } ?: obtainDelegate()
-        return when (val res = d.load(params)) {
+        val delegate = currentDelegate?.takeUnless { it.invalid } ?: createAndRegisterDelegate()
+        val result = delegate.load(params)
+        return when (result) {
             is LoadResult.Page -> LoadResult.Page(
-                data = res.data.map { it.toRepo() },
-                prevKey = res.prevKey,
-                nextKey = res.nextKey,
-                itemsBefore = res.itemsBefore,
-                itemsAfter = res.itemsAfter
+                data = result.data.map { it.toRepo() },
+                prevKey = result.prevKey,
+                nextKey = result.nextKey,
+                itemsBefore = result.itemsBefore,
+                itemsAfter = result.itemsAfter
             )
-            is LoadResult.Error -> LoadResult.Error(res.throwable)
+            is LoadResult.Error -> LoadResult.Error(result.throwable)
             is LoadResult.Invalid -> LoadResult.Invalid()
         }
     }
