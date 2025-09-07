@@ -1,4 +1,7 @@
 package parinexus.sample.githubevents.data.repository
 
-class ImmediateTransactionRunner {
+import parinexus.sample.githubevents.data.repository.port.TransactionRunner
+
+class ImmediateTransactionRunner : TransactionRunner {
+    override suspend fun invoke(block: suspend () -> Unit) = block()
 }
