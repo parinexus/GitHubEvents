@@ -11,6 +11,10 @@ android {
 dependencies {
     implementation(project(":domain"))
     implementation(project(":libraries:core"))
+    implementation(libs.androidx.paging.runtime)
+    implementation(libs.retrofit.core)
+
+    implementation(libs.room.ktx)
     implementation(libs.androidx.paging.common)
 
 }
