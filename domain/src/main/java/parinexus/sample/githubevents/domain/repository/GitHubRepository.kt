@@ -5,8 +5,6 @@ import kotlinx.coroutines.flow.Flow
 import parinexus.sample.githubevents.domain.model.Event
 
 interface GitHubRepository {
-
     fun getEvents(): Flow<PagingData<Event>>
-
-    fun getEventById(id: String): Event?
+    suspend fun getEventById(id: String): Event?
 }
