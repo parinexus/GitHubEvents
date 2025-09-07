@@ -11,6 +11,7 @@ class AuthAndHeadersInterceptor(
         val builder = chain.request().newBuilder()
             .header("Accept", "application/vnd.github+json")
             .header("User-Agent", userAgent)
+            .header("X-GitHub-Api-Version", "2022-11-28")
 
         if (token.isNotBlank()) {
             builder.header("Authorization", "Bearer $token")

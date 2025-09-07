@@ -6,6 +6,6 @@ data class GitHubEvent(
     val id: String,
     @SerializedName( "type") val type: EventType,
     val actor: Actor,
-    val githubRepository: GithubRepository,
+    val githubRepository: GithubRepository?,
     @SerializedName( "created_at") val createdAt: String
 )
