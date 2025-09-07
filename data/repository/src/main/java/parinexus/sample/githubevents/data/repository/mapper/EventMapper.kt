@@ -1,30 +1,27 @@
 package parinexus.sample.githubevents.data.repository.mapper
 
-import parinexus.sample.githubevents.data.repository.model.RepoActor
 import parinexus.sample.githubevents.data.repository.model.RepoEvent
-import parinexus.sample.githubevents.data.repository.model.RepoGithubRepository
 import parinexus.sample.githubevents.domain.model.Actor
 import parinexus.sample.githubevents.domain.model.Event
-import parinexus.sample.githubevents.domain.model.GithubRepository
+import parinexus.sample.githubevents.domain.model.RepoModel
 
-fun RepoActor.toRepo(): Actor =
+fun toRepoActor(actorLogin: String, actorAvatarUrl: String): Actor =
     Actor(
-        id = id,
-        login = login,
-        avatarUrl = avatarUrl
+        login = actorLogin,
+        avatarUrl = actorAvatarUrl
     )
 
-fun RepoGithubRepository.toRepo(): GithubRepository =
-    GithubRepository(
-        id = id,
-        name = name,
-        url = url
+fun toRepoModel(repoName: String?, repoUrl: String?): RepoModel =
+    RepoModel(
+        name = repoName,
+        url = repoUrl
     )
 
 fun RepoEvent.toDomainEvent(): Event =
     Event(
         id = id,
-        actor = actor.toRepo(),
-        repo = repo?.toRepo(),
-        createdAt = createdAt
+        type = type,
+        actor = toRepoActor(actorLogin,actorAvatarUrl),
+        repo = toRepoModel(repoName, repoUrl),
+        createdAt = createdAtEpochMillis.toString()
     )
