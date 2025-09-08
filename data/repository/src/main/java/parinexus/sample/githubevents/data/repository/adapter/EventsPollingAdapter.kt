@@ -8,9 +8,15 @@ import javax.inject.Inject
 class EventsPollingAdapter @Inject constructor(
     private val poller: EventsPoller
 ) : EventsPollingPort {
-    override fun start(scope: CoroutineScope, intervalMs: Long, pageSize: Int) {
-        poller.start(scope, intervalMs, pageSize)
+    override fun start(
+        scope: CoroutineScope,
+        intervalMs: Long,
+        pageSize: Int,
+        startImmediately: Boolean
+    ) {
+        poller.start(scope, intervalMs, pageSize, startImmediately)
     }
+
     override fun stop() {
         poller.stop()
     }
