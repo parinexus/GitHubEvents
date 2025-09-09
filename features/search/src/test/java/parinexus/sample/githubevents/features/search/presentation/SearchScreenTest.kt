@@ -15,10 +15,6 @@ import parinexus.sample.githubevents.libraries.test.dsl.RUN_UNIT_TEST
 import parinexus.sample.githubevents.libraries.test.dsl.THEN
 import parinexus.sample.githubevents.libraries.test.dsl.WHEN
 
-/**
- * UI tests for SearchScreen that drive a test Lifecycle and
- * verify the ViewModel receives lifecycle-driven calls via the loader.
- */
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE)
 class SearchScreenTest {

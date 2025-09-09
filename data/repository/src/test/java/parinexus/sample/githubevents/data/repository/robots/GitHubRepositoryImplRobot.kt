@@ -15,16 +15,10 @@ import kotlin.test.assertEquals
 
 class GitHubRepositoryImplRobot: BaseRobot(){
 
-    private val remote = FakeEventsRemoteDataSource()
     private val local  = FakeEventsLocalDataSource()
-    private val keys   = FakeRemoteKeysLocalDataSource()
-    private val tx     = ImmediateTransactionRunner()
 
     private val repository = GitHubRepositoryImpl(
-        eventsRemoteDataSource = remote,
         eventsLocalDataSource  = local,
-        remoteKeysLocalDataSource = keys,
-        transactionRunner = tx
     )
 
     var snapshot: List<Event> = emptyList(); private set
@@ -39,12 +33,11 @@ class GitHubRepositoryImplRobot: BaseRobot(){
         createdAtEpochMillis = createdAt
     )
 
-    fun seedRemote(items: List<RepoEvent>) {
-        remote.next = RemoteFetchResult(code = 200, items = items, linkHeader = null)
+    suspend fun seedLocal(items: List<RepoEvent>) {
+        local.upsertAll(items)
     }
 
-    suspend fun loadSnapshot(pageSize: Int = 30) {
-        mediatorRefresh(page = 1, pageSize = pageSize)
+    suspend fun loadSnapshot() {
         snapshot = repository.getEvents().asSnapshot()
     }
 
@@ -71,18 +64,4 @@ class GitHubRepositoryImplRobot: BaseRobot(){
         assertEquals(null, domain)
     }
 
-    private suspend fun mediatorRefresh(page: Int, pageSize: Int) {
-        val res = remote.getEvents(limit = pageSize, page = page)
-        if (res.code in 200..299 && res.items.isNotEmpty()) {
-            tx {
-                keys.clear()
-                local.clearAll()
-                val prevKey: Int? = null
-                val nextKey: Int? = null
-                val keyModels = res.items.map { RepoRemoteKeys(eventId = it.id, prevKey = prevKey, nextKey = nextKey) }
-                keys.insertAll(keyModels)
-                local.upsertAll(res.items)
-            }
-        }
-    }
 }

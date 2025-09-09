@@ -58,7 +58,7 @@ fun Navigator(navHostController: NavHostController) {
 
 class Actions(private val navHostController: NavHostController) {
 
-    val openEventDetailScreen: (username: String) -> Unit = {
+    val openEventDetailScreen: (eventId: String) -> Unit = {
         navHostController.navigate("${Destinations.EVENT_DETAIL}/$it")
     }
 

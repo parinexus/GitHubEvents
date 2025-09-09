@@ -8,8 +8,8 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
-import parinexus.sample.githubevents.features.search.presentation.SearchScreen
 import parinexus.sample.githubevents.features.searchapi.model.UserEvent
 import parinexus.sample.githubevents.libraries.test.BaseRobot
 
@@ -30,26 +30,26 @@ import parinexus.sample.githubevents.libraries.test.BaseRobot
 class SearchScreenRobot(
     private val composeRule: ComposeContentTestRule
 ) : BaseRobot(){
-    // A controllable lifecycle for the screen
     private val lifecycleOwner = TestLifecycleOwner(Lifecycle.State.CREATED)
 
-    // Mock ViewModel
     private val viewModel: SearchScreenViewModel = mockk(relaxed = true)
 
-    // Spy for navigation
     private var lastNavigatedId: String? = null
     private val navigateSpy: (String) -> Unit = { id -> lastNavigatedId = id }
 
-    // ---------- GIVEN ----------
     fun mockViewModelWithEvents(count: Int) {
         val items: List<UserEvent> = List(count) { mockk(relaxed = true) }
-        val flow: Flow<PagingData<UserEvent>> =
+        val eventsFlow: Flow<PagingData<UserEvent>> =
             if (count == 0) flowOf(PagingData.empty())
             else flowOf(PagingData.from(items))
-        every { viewModel.events } returns flow
+
+        val stateFlow = MutableStateFlow(
+            SearchScreenViewState(events = eventsFlow)
+        )
+
+        every { viewModel.uiState } returns stateFlow
     }
 
-    // ---------- WHEN ----------
     fun setContent() {
         composeRule.setContent {
             SearchScreen(
@@ -68,7 +68,6 @@ class SearchScreenRobot(
         lifecycleOwner.currentState = Lifecycle.State.DESTROYED
     }
 
-    // ---------- THEN ----------
     fun verifyOnScreenResumedCalledExactly(times: Int) {
         verify(exactly = times) { viewModel.onScreenResumed() }
     }
@@ -77,7 +76,6 @@ class SearchScreenRobot(
         verify(exactly = times) { viewModel.onScreenStopped() }
     }
 
-    // Optional: expose navigation assertion if your UI triggers it.
     fun assertNavigatedTo(expectedId: String) {
         requireNotNull(lastNavigatedId) { "Expected navigation to be triggered, but it wasn't." }
         assert(lastNavigatedId == expectedId) {

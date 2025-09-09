@@ -6,6 +6,8 @@ import parinexus.sample.githubevents.data.repository.datasource.EventsLocalDataS
 import parinexus.sample.githubevents.data.repository.datasource.EventsRemoteDataSource
 import parinexus.sample.githubevents.data.repository.model.RepoEvent
 import parinexus.sample.githubevents.data.repository.port.TransactionRunner
+import parinexus.sample.githubevents.data.repository.util.DEFAULT_PAGE_SIZE
+import parinexus.sample.githubevents.data.repository.util.DEFAULT_POLL_INTERVAL_MS
 
 class EventsPoller @Inject constructor(
     private val remote: EventsRemoteDataSource,
@@ -16,19 +18,18 @@ class EventsPoller @Inject constructor(
 
     fun start(
         scope: CoroutineScope,
-        intervalMs: Long = 10_000L,
-        pageSize: Int = 30,
         startImmediately: Boolean = true
     ) {
         if (job?.isActive == true) return
 
         job = scope.launch(Dispatchers.IO + SupervisorJob()) {
-            var lastSeen: Long = local.latestCreatedAt() ?: Long.MIN_VALUE
-            if (!startImmediately) delay(intervalMs)
+            val existingLastSeen = local.latestCreatedAt()
+            var lastSeen: Long = existingLastSeen ?: Long.MIN_VALUE
+            if (existingLastSeen != null && !startImmediately) delay(DEFAULT_POLL_INTERVAL_MS)
 
             while (isActive) {
                 try {
-                    val res = remote.getEvents(limit = pageSize, page = 1)
+                    val res = remote.getEvents(limit = DEFAULT_PAGE_SIZE, page = 1)
                     when (res.code) {
                         304 -> Unit
                         in 200..299 -> {
@@ -48,13 +49,15 @@ class EventsPoller @Inject constructor(
                                 )
                             }
                         }
+
                         else -> {}
                     }
                 } catch (ce: CancellationException) {
                     break
-                } catch (_: Throwable) { }
+                } catch (_: Throwable) {
+                }
 
-                delay(intervalMs)
+                delay(DEFAULT_POLL_INTERVAL_MS)
             }
         }
     }

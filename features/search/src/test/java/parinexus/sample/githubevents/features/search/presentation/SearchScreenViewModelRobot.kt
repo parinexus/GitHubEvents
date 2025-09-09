@@ -23,29 +23,22 @@ class SearchScreenViewModelRobot(
     private val scheduler: TestCoroutineScheduler
 ) : BaseRobot(){
 
-    // Mocks for the 3 use cases
     private val searchUseCase: SearchEventsUseCase = mockk(relaxed = true)
     private val startPolling: StartEventsPollingUseCase = mockk(relaxed = true)
     private val stopPolling: StopEventsPollingUseCase = mockk(relaxed = true)
 
-    // Subject under test
     private lateinit var viewModel: SearchScreenViewModel
-
-    // ---------- GIVEN ----------
 
     fun mockUseCaseWithEvents(count: Int = 0) {
         val flow: Flow<PagingData<UserEvent>> =
             if (count <= 0) flowOf(PagingData.empty())
             else {
-                // We don't need real UserEvent instances; PagingData.from with mocks is fine.
                 val items = List(count) { mockk<UserEvent>(relaxed = true) }
                 flowOf(PagingData.from(items))
             }
 
         every { searchUseCase.invoke() } returns flow
     }
-
-    // ---------- WHEN ----------
 
     fun createViewModel() {
         viewModel = SearchScreenViewModel(
@@ -55,11 +48,6 @@ class SearchScreenViewModelRobot(
         )
     }
 
-    /**
-     * The ViewModel doesn’t have an 'immediate' flag; it always delegates to
-     * startPolling(viewModelScope, 10_000L, 30). We keep the parameter for parity
-     * with your sample DSL.
-     */
     fun startAutoRefresh(immediate: Boolean) {
         viewModel.onScreenResumed()
     }
@@ -76,26 +64,23 @@ class SearchScreenViewModelRobot(
         scheduler.advanceUntilIdle()
     }
 
-    fun tick10s() {
-        // Included to mirror your sample; the VM itself doesn't do time-based work.
-        scheduler.advanceTimeBy(10_000L)
-        scheduler.runCurrent()
-    }
-
-    // ---------- THEN ----------
-
     fun verifySearchUseCaseCalledExactly(times: Int) {
         verify(exactly = times) { searchUseCase.invoke() }
     }
 
     fun verifyStartPollingCalledExactly(times: Int) {
-        verify(exactly = times) { startPolling.invoke(any<CoroutineScope>(), any(), any()) }
+        verify(exactly = times) { startPolling.invoke(any<CoroutineScope>(), any()) }
     }
 
     fun verifyStartPollingCalledWith(intervalMillis: Long, maxPages: Int) {
         val intervalSlot = slot<Long>()
         val pagesSlot = slot<Int>()
-        verify { startPolling.invoke(any<CoroutineScope>(), capture(intervalSlot), capture(pagesSlot)) }
+        verify {
+            startPolling.invoke(
+                any<CoroutineScope>(),
+                any()
+            )
+        }
         assertEquals(intervalMillis, intervalSlot.captured)
         assertEquals(maxPages, pagesSlot.captured)
     }
@@ -105,7 +90,7 @@ class SearchScreenViewModelRobot(
     }
 
     fun assertUiHasPagingData() {
-        val pd = runBlocking { viewModel.events.first() }
+        val pd = runBlocking { viewModel.uiState.first() }
         assertNotNull("Expected PagingData emission from events Flow", pd)
     }
 }

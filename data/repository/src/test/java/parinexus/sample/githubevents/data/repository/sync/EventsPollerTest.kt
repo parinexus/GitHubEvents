@@ -53,6 +53,19 @@ class EventsPollerTest {
     }
 
     @Test
+    fun start_when_local_empty_fetches_immediately_even_if_startImmediately_false() =
+        RUN_UNIT_TEST(robot) {
+            GIVEN {
+                seedRemote(
+                    code = 200,
+                    items = listOf(repoEvent(id = "e1", createdAt = 1_000L, login = "new")),
+                )
+            }
+            WHEN { startPollerAndWaitFirstInsert(startImmediately = false) }
+            THEN { assertLocalIdsByCreatedDesc(listOf("e1")); assertLocalSize(1); stopAndDispose() }
+        }
+
+    @Test
     fun stop_prevents_next_cycles_after_first_iteration() = RUN_UNIT_TEST(robot) {
         GIVEN {
             seedRemote(
@@ -64,7 +77,7 @@ class EventsPollerTest {
             )
         }
         WHEN {
-            startPollerAndWaitFirstInsert(intervalMs = 30L)
+            startPollerAndWaitFirstInsert()
             stopPoller()
 
             seedRemote(

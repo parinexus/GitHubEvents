@@ -22,7 +22,8 @@ class AppOkHttpClient(
         if (BuildConfig.DEBUG) {
             clientBuilder.addInterceptor(
                 HttpLoggingInterceptor().apply {
-                    setLevel(HttpLoggingInterceptor.Level.BODY)
+                    level = HttpLoggingInterceptor.Level.BODY
+                    redactHeader("Authorization")
                 }
             )
         }

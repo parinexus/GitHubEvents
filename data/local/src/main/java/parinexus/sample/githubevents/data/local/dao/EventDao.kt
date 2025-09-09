@@ -9,7 +9,7 @@ import parinexus.sample.githubevents.data.local.entity.LocalEvent
 
 @Dao
 interface EventDao {
-    @Query("SELECT * FROM events ORDER BY createdAtEpochMillis DESC")
+    @Query("SELECT * FROM events")
     fun pagingSource(): PagingSource<Int, LocalEvent>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
