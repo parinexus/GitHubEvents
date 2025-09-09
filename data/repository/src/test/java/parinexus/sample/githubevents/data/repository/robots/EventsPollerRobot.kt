@@ -20,8 +20,8 @@ import kotlin.test.assertEquals
 class EventsPollerRobot : BaseRobot() {
 
     private val remoteBase = FakeEventsRemoteDataSource()
-    private val localBase  = FakeEventsLocalDataSource()
-    private val local      = TestLocalWrapper(localBase)
+    private val localBase = FakeEventsLocalDataSource()
+    private val local = TestLocalWrapper(localBase)
     private val tx: TransactionRunner = ImmediateTransactionRunner()
     private val poller = EventsPoller(remote = remoteBase, local = local, tx = tx)
 
@@ -37,25 +37,39 @@ class EventsPollerRobot : BaseRobot() {
         createdAtEpochMillis = createdAt
     )
 
-    suspend fun seedLocal(vararg events: RepoEvent) { local.seed(*events) }
+    suspend fun seedLocal(vararg events: RepoEvent) {
+        local.seed(*events)
+    }
 
     fun seedRemote(code: Int, items: List<RepoEvent>) {
         remoteBase.next = RemoteFetchResult(code = code, items = items, linkHeader = null)
     }
 
-    suspend fun startPollerAndWaitFirstInsert(intervalMs: Long = 10_000L) {
+    suspend fun startPollerAndWaitFirstInsert(
+       startImmediately: Boolean = true,
+    ) {
         local.firstUpsertSignal = CompletableDeferred()
-        poller.start(scope = scope, intervalMs = intervalMs, pageSize = 30, startImmediately = true)
+        poller.start(
+            scope = scope,
+            startImmediately = startImmediately,
+        )
         local.firstUpsertSignal?.await()
     }
 
-    suspend fun startPollerAndWaitSilently(intervalMs: Long = 10_000L) {
-        poller.start(scope = scope, intervalMs = intervalMs, pageSize = 30, startImmediately = true)
-        delayReal(25L)
+    suspend fun startPollerAndWaitSilently(
+      startImmediately: Boolean = true,
+    ) {
+        poller.start(
+            scope = scope,
+            startImmediately = startImmediately,
+        )
+        delayReal (25L)
     }
 
     fun stopPoller() = poller.stop()
-    fun stopAndDispose() { poller.stop(); scope.cancel() }
+    fun stopAndDispose() {
+        poller.stop(); scope.cancel()
+    }
 
     suspend fun assertLocalIdsByCreatedDesc(expected: List<String>) {
         assertEquals(expected, local.idsByCreatedDesc())

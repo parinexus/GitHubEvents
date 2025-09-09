@@ -26,7 +26,7 @@ class GitHubRepositoryImplTest {
     @Test
     fun paging_maps_repo_to_domain_and_emits_items() = RUN_UNIT_TEST(robot) {
         GIVEN {
-            seedRemote(
+            seedLocal(
                 listOf(
                     repoEvent(id = "e2", createdAt = 2_000L, login = "b"),
                     repoEvent(id = "e1", createdAt = 1_000L, login = "a"),
@@ -41,7 +41,7 @@ class GitHubRepositoryImplTest {
     @Test
     fun getEventById_returns_item_and_null_for_missing() = RUN_UNIT_TEST(robot) {
         GIVEN {
-            seedRemote(
+            seedLocal(
                 listOf(
                     repoEvent(id = "e1", createdAt = 1_000L, login = "octocat"),
                     repoEvent(id = "e2", createdAt = 2_000L, login = "hubber"),
@@ -56,7 +56,7 @@ class GitHubRepositoryImplTest {
     @Test
     fun paging_orders_by_createdAt_desc() = RUN_UNIT_TEST(robot) {
         GIVEN {
-            seedRemote(
+            seedLocal(
                 listOf(
                     repoEvent(id = "a", createdAt = 1_000L, login = "a"),
                     repoEvent(id = "b", createdAt = 3_000L, login = "b"),
