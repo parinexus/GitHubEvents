@@ -10,11 +10,9 @@ class EventsPollingAdapter @Inject constructor(
 ) : EventsPollingPort {
     override fun start(
         scope: CoroutineScope,
-        intervalMs: Long,
-        pageSize: Int,
         startImmediately: Boolean
     ) {
-        poller.start(scope, intervalMs, pageSize, startImmediately)
+        poller.start(scope, startImmediately)
     }
 
     override fun stop() {

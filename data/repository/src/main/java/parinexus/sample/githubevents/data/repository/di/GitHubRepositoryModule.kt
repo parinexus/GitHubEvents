@@ -19,14 +19,8 @@ object GitHubRepositoryModule {
     @Provides
     @Singleton
     fun provideGitHubRepository(
-        eventsRemoteDataSource: EventsRemoteDataSource,
         eventsLocalDataSource: EventsLocalDataSource,
-        remoteKeysLocalDataSource: RemoteKeysLocalDataSource,
-        transactionRunner: TransactionRunner,
     ): GitHubRepository = GitHubRepositoryImpl(
-        eventsRemoteDataSource = eventsRemoteDataSource,
         eventsLocalDataSource = eventsLocalDataSource,
-        remoteKeysLocalDataSource = remoteKeysLocalDataSource,
-        transactionRunner = transactionRunner
     )
 }
