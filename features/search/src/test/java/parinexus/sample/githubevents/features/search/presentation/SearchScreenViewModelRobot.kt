@@ -89,13 +89,20 @@ class SearchScreenViewModelRobot(
     }
 
     fun verifyStartPollingCalledExactly(times: Int) {
-        verify(exactly = times) { startPolling.invoke(any<CoroutineScope>(), any(), any()) }
+        verify(exactly = times) { startPolling.invoke(any<CoroutineScope>(), any(), any(), any()) }
     }
 
     fun verifyStartPollingCalledWith(intervalMillis: Long, maxPages: Int) {
         val intervalSlot = slot<Long>()
         val pagesSlot = slot<Int>()
-        verify { startPolling.invoke(any<CoroutineScope>(), capture(intervalSlot), capture(pagesSlot)) }
+        verify {
+            startPolling.invoke(
+                any<CoroutineScope>(),
+                capture(intervalSlot),
+                capture(pagesSlot),
+                any()
+            )
+        }
         assertEquals(intervalMillis, intervalSlot.captured)
         assertEquals(maxPages, pagesSlot.captured)
     }

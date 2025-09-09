@@ -6,6 +6,10 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import parinexus.sample.githubevents.features.searchapi.model.UserEvent
 import javax.inject.Inject
 import parinexus.sample.githubevents.features.searchapi.usecase.SearchEventsUseCase
@@ -16,12 +20,23 @@ import parinexus.sample.githubevents.features.searchapi.usecase.StopEventsPollin
 class SearchScreenViewModel @Inject constructor(
     private val searchUseCase: SearchEventsUseCase,
     private val startPolling: StartEventsPollingUseCase,
-    private val stopPolling: StopEventsPollingUseCase
+    private val stopPolling: StopEventsPollingUseCase,
 ) : ViewModel() {
 
-    val events: Flow<PagingData<UserEvent>> = searchUseCase().cachedIn(viewModelScope)
+    private val _uiState = MutableStateFlow(SearchScreenViewState())
+    val uiState: StateFlow<SearchScreenViewState> = _uiState.asStateFlow()
 
-    fun onScreenResumed() = startPolling(viewModelScope, 10_000L, 30, startImmediately = false)
+    private val eventsFlow: Flow<PagingData<UserEvent>> = searchUseCase().cachedIn(viewModelScope)
+
+    init {
+        onStartSearch()
+    }
+
+    fun onStartSearch() {
+        _uiState.update { it.copy(events = eventsFlow) }
+    }
+
+    fun onScreenResumed() = startPolling(viewModelScope, startImmediately = false)
     fun onScreenStopped() = stopPolling()
 
     override fun onCleared() {
