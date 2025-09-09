@@ -9,9 +9,7 @@ class StartEventsPollingUseCase @Inject constructor(
 ) {
     operator fun invoke(
         scope: CoroutineScope,
-        intervalMs: Long = 10_000L,
-        pageSize: Int = 30,
         startImmediately: Boolean = true
     ) =
-        port.start(scope, intervalMs, pageSize, startImmediately)
+        port.start(scope, startImmediately)
 }
